@@ -8,7 +8,7 @@
 
 (in-package :aplicacion)
 
-(connect-toplevel :postgres :database-name "agenda" :username "username" :password "password" :host "localhost")
+(connect-toplevel :postgres :database-name "database" :username "username" :password "xxxx-xxxx" :host "localhost")
 
 ;;(push #'dbi:simple-sql-logger dbi:*sql-execution-hooks*)
 
@@ -121,11 +121,12 @@
     (setf iter (gtk-tree-selection-get-selected selection))
     (setf nombre (gtk-tree-model-get-value (modelo (etiquetas instance)) iter 1))
     (setf id (gtk-tree-model-get-value (modelo (etiquetas instance)) iter 2))
-    (setf dialogo (make-instance 'gtk-message-dialog
-				 :message-type :question
-				 :buttons :yes-no
-				 :text "¿Desea eliminar la etiqueta?"
-				 :secondary-text (format nil "~d - ~s" id nombre)))
+    (setf dialogo
+	  (make-instance 'gtk-message-dialog
+			 :message-type :question
+			 :buttons :yes-no
+			 :text "¿Desea eliminar la etiqueta?"
+			 :secondary-text (format nil "~d - ~s" id nombre)))
     (when (string= "YES" (gtk-dialog-run dialogo))
       ;;(gtk-widget-hide dialogo)
       (execute (delete-from :etiqueta_nota (where (:= :id id))))
@@ -137,9 +138,9 @@
   (let (id (iter (gtk-tree-model-get-iter-first (modelo (etiquetas instance)))))
     (loop while iter
     	  do (setf id (gtk-tree-model-get-value (modelo (etiquetas instance)) iter 2))
-	     (when (member id (lista-etiquetas instance))
-	       (gtk-list-store-set (modelo (etiquetas instance)) iter t))
-	     (setf iter (gtk-tree-model-iter-next (modelo (etiquetas instance)) iter)))))
+	  (when (member id (lista-etiquetas instance))
+	    (gtk-list-store-set (modelo (etiquetas instance)) iter t))
+	  (setf iter (gtk-tree-model-iter-next (modelo (etiquetas instance)) iter)))))
 
 (defmethod actualizar-lista-etiquetas ((instance editor-nota))
   (gtk-list-store-clear (modelo (etiquetas instance)))
@@ -195,7 +196,7 @@
     (gtk-tree-view-column-set-attributes columna text-renderer "text" 1)
     (gtk-tree-view-append-column (widget (etiquetas instance)) columna))
   (actualizar-lista-etiquetas instance)
-  (loop for element in (retrieve-all (select :* (from :tipo_nota)))
+  (loop for element in (retrieve-all (select :* (from :tipo_nota) (order-by :id)))
 	do (gtk-list-store-set
 	    (modelo (tipo-nota instance))
 	    (gtk-list-store-append (modelo (tipo-nota instance)))
@@ -247,17 +248,24 @@
     (gtk-widget-destroy (widget dialogo))))
 
 (defmethod modificar-nota ((instance agenda))
-  (let ((dialogo (make-instance 'editor-nota))
-  	(selection (gtk-tree-view-get-selection (widget (lista instance))))
-	nota id iter)
+  (let (id iter nota tipo-nota
+	   (dialogo (make-instance 'editor-nota))
+  	   (selection (gtk-tree-view-get-selection (widget (lista instance)))))
     (setf iter (gtk-tree-selection-get-selected selection))
     (setf id (gtk-tree-model-get-value (modelo (lista instance)) iter 1))
     (setf (id-nota dialogo) id)
     (setf nota (retrieve-one (select :* (from :nota) (where (:= :id id)))))
+    (setf tipo-nota (retrieve-one (select :* (from :tipo_nota) (where (:= :id (getf nota :tipo-nota))))))
     (setf (nombre dialogo) (getf nota :nombre))
     (setf (descripcion dialogo) (or (getf nota :descripcion) ""))
     (setf (contenido dialogo) (getf nota :contenido))
-    (gtk-combo-box-set-active (widget (tipo-nota dialogo)) (decf (getf nota :tipo-nota)))
+    (let (combo-box-iter texto (indice 0))
+      (setf combo-box-iter (gtk-tree-model-get-iter-first (modelo (tipo-nota dialogo))))
+      (loop while combo-box-iter do
+	    (setf texto (gtk-tree-model-get-value (modelo (tipo-nota dialogo)) combo-box-iter 0))
+	    (when (string= texto (getf tipo-nota :nombre)) (gtk-combo-box-set-active (widget (tipo-nota dialogo)) indice))
+	    (setf combo-box-iter (gtk-tree-model-iter-next (modelo (tipo-nota dialogo)) combo-box-iter))
+	    (setf indice (+ indice 1)) until (string= texto (getf tipo-nota :nombre))))
     (let (guardados seleccionados)
       (loop for elemento in (retrieve-all (select :* (from :nota_etiqueta) (where (:= :nota (getf nota :id)))))
     	    do (push (getf elemento :etiqueta-nota) guardados))
@@ -286,13 +294,13 @@
   (let (iter selection dialogo id nombre)
     (setf selection (gtk-tree-view-get-selection (widget (lista instance))))
     (setf iter (gtk-tree-selection-get-selected selection))
-    (setf id (gtk-tree-model-get-value (modelo (lista instance)) iter 0))
-    (setf nombre (gtk-tree-model-get-value (modelo (lista instance)) iter 1))
+    (setf id (gtk-tree-model-get-value (modelo (lista instance)) iter 1))
+    (setf nombre (gtk-tree-model-get-value (modelo (lista instance)) iter 2))
     (setf dialogo (make-instance 'gtk-message-dialog
 				 :message-type :question
 				 :buttons :yes-no
 				 :text "¿Desea eliminar la nota?"
-				 :secondary-text nombre))
+				 :secondary-text (format nil "~s" nombre)))
     (when (string= "YES" (gtk-dialog-run dialogo))
       ;;(gtk-widget-hide dialogo)
       (format t "La nota ~d - ~s se elimina~%" id nombre))
