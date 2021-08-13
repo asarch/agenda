@@ -89,7 +89,7 @@
    (descripcion :initform "Seleccione un elemento de la lista" :initarg :descripcion :accessor descripcion)))
 
 (defmethod renderear ((instance dropdown-list))
-  (let ((buffer (format nil "<div class=~s><label>~a</label><div class=\"ui search selection dropdown\"><input type=\"hidden\" name=~s value=~s><i class=\"dropdown icon\"></i><div class=\"default text\">~a</div><div class=\"menu\" id=\"lenguaje-programacion\">"
+  (let ((buffer (format nil "<div class=~s><label>~a</label><div class=\"ui search selection dropdown\"><input type=\"hidden\" name=~s value=~s><i class=\"dropdown icon\"></i><div class=\"default text\">~a</div><div class=\"menu\">"
   			(clase instance)
   			(etiqueta instance)
   			(nombre instance)
