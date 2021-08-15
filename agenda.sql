@@ -82,7 +82,6 @@ CREATE TABLE anime_viendo (
     anime integer REFERENCES anime (id) ON DELETE CASCADE ON UPDATE CASCADE,
     episodio integer,
     direccion text,
-    episodios integer,
     fecha timestamp WITH TIME ZONE DEFAULT now()
 );
 
