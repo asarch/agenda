@@ -75,9 +75,11 @@
   
   (format nil "<div class=~s><div class=\"ui ~a checkbox\"><input type=\"checkbox\" name=~s ~a><label>~a</label></div></div>"
 	  (clase instance)
-	  (when (valor instance) (format nil "checked"))
+	  (if (string= (valor instance) "") ""
+	    (format nil "cheked"))
 	  (nombre instance)
-	  (when (valor instance) (format nil "checked=\"\""))
+	  (if (string= (valor instance) "") ""
+	    (format nil "checked=\"\""))
 	  (etiqueta instance)))
 
 ;;---------------------------------------------------------------------
