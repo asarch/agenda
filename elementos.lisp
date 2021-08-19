@@ -99,6 +99,10 @@
 	  do (setf buffer (concatenate 'string buffer (format nil "<div class=\"item\" data-value=\"~a\">~a</div>" (getf elemento :id) (getf elemento :nombre)))))
     (setf buffer (concatenate 'string buffer "</div></div></div>"))))
 
+;;---------------------------------------------------------------------
+;;  Rating
+;;---------------------------------------------------------------------
+
 (defclass rating (elemento-html)
   ((data-rating :initform 3 :initarg :data-rating :accessor data-rating)
    (data-max-rating :initform 5 :initarg :data-max-rating :accessor data-max-rating)))
